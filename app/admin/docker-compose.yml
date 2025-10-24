@@ -1,0 +1,28 @@
+version: '3'
+services:
+  backend:
+    build: .
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      - MYSQL_DATABASE=admin
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - .dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysql" , "-h", "localhost", "--port=3306", "--protocol=TCP", "-uroot", "-proot"]
+      timeout: 60s
+      retries: 120
+    ports:
+      - 3306:3306
