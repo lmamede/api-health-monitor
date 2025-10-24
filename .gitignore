@@ -1,0 +1,4 @@
+**/.dbdata
+**/rabbitmq
+**/__pycache__
+**/migrations
