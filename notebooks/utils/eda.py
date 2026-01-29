@@ -5,6 +5,7 @@ import math
 import matplotlib.dates as mdates
 from scipy.stats import poisson, kstest
 import numpy as np
+from statsmodels.distributions.empirical_distribution import ECDF
 
 class EDA:
     def __init__(self, df):
@@ -158,3 +159,71 @@ class EDA:
             "ks_pvalue": p,
             "n_samples": len(sample)
         })
+
+    def calculate_window_params(self, sample):
+        window_lam = sample.mean()
+        window_var = sample.var()
+        return window_lam, window_var
+
+
+    def plot_poisson_hist(self, ax, x, lam, sample_window_id):
+        # empirical histogram
+        counts = x.value_counts().sort_index()
+        values = counts.index.values
+
+        pmf = poisson.pmf(values, mu=lam) * len(x)
+        ax.bar(values, counts.values, alpha=0.7, label="Empirical")
+        ax.plot(values, pmf, "o-", color='orange', label=f"Poisson(λ={lam:.2f})")
+
+        ax.set_xlabel("Requests per second")
+        ax.set_ylabel("Frequency")
+        ax.set_title(f"Window {sample_window_id} – Poisson fit")
+        ax.legend()
+
+    def plot_poisson_ecdf(self, ax, x, lam, sample_window_id):
+        ecdf = ECDF(x)
+        k = np.arange(0, x.max() + 1)
+
+        ax.step(k, ecdf(k), where="post", label="Empirical ECDF")
+        ax.plot(k, poisson.cdf(k, mu=lam), "r--", label="Poisson CDF")
+
+        ax.set_xlabel("Requests per second")
+        ax.set_ylabel("CDF")
+        ax.set_title(f"ECDF vs Poisson CDF – Window {sample_window_id}")
+        ax.legend()
+
+    def plot_q_q(self, ax, x, lam, sample_window_id):
+        probs = (np.arange(1, len(x) + 1) - 0.5) / len(x)
+        poisson_q = poisson.ppf(probs, mu=lam)
+
+        ax.scatter(poisson_q, np.sort(x), s=10)
+        ax.plot([0, max(poisson_q)], [0, max(poisson_q)], "r--")
+
+        ax.set_xlabel("Poisson quantiles")
+        ax.set_ylabel("Empirical quantiles")
+        ax.set_title(f"Q–Q plot – Window {sample_window_id}")
+
+    def plot_poisson_suitability_sample(self, sample_window_id, df):
+        x = df[df['window_id'] == sample_window_id]['count']
+        lam, var = self.calculate_window_params(x)
+
+        print(f"λ (mean) = {lam:.2f}")
+        print(f"variance = {var:.2f}")
+
+        if lam != 0:
+            print(f"var / mean = {var / lam:.2f}")
+
+        fig = plt.figure(figsize=(10, 3))
+        ax1 = fig.add_subplot(1, 3, 1)
+        ax2 = fig.add_subplot(1, 3, 2)
+        ax3 = fig.add_subplot(1, 3, 3)
+
+        self.plot_poisson_hist(ax1, x, lam, sample_window_id)
+        self.plot_poisson_ecdf(ax2, x, lam, sample_window_id)
+        self.plot_q_q(ax3, x, lam, sample_window_id)
+
+        plt.tight_layout()
+        plt.show()
+
+
+
