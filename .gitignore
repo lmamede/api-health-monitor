@@ -2,4 +2,6 @@
 **/rabbitmq
 **/__pycache__
 **/migrations
-**/.venv
+.venv
+datasets/
+.idea
