@@ -80,7 +80,6 @@ class EDA:
         if len(top_uris) > 1:
             sharex=True
             n_cols = 3
-            interval = 300
             n_rows = math.ceil(n_endpoints / n_cols)
             figsize_plot = (5 * n_cols, 3.5 * n_rows)
 
@@ -160,11 +159,121 @@ class EDA:
             "n_samples": len(sample)
         })
 
+    def index_windows(self, window_indexed_df):
+        window_indexed_df['window_id'] = (
+                window_indexed_df['window_start']
+                .astype(int)
+                .rank(method='dense')
+                .astype(int) - 1
+        )
+
+        window_indexed_df = window_indexed_df[['endpoint', 'window_id', 'time_local', 'count', 'is_anomaly']]
+
+        window_indexed_df = window_indexed_df.rename(columns={
+            'count': 'total_requests'
+        })
+
+        return window_indexed_df
+
+    def poisson_evaluation_per_window(self, endpoint_df, window_size):
+        endpoint_df['window_start'] = endpoint_df['time_local'].dt.floor(window_size).copy()
+        endpoint_df = self.index_windows(endpoint_df)
+
+        window_stats = (
+            endpoint_df.groupby(["endpoint", "window_id"])["total_requests"]
+            .apply(self.poisson_window_metrics)
+            .unstack()
+            .reset_index()
+        )
+
+        window_stats['poisson_deviation'] = (
+                np.abs(window_stats['var_mean_ratio'] - 1) * window_stats['ks_stat']
+        )
+
+        window_stats['poisson_deviation_log'] = np.log1p(window_stats['poisson_deviation'])
+
+        window_stats['flag_non_poisson'] = (
+                (window_stats['var_mean_ratio'] > 1.5) |
+                (window_stats['ks_pvalue'] < 0.01)
+        )
+
+        return window_stats
+
+    def poisson_endpoint_metric(self, sample):
+        endpoint_var_mean = sample.median(skipna=True)
+
+        return pd.Series({
+            "var_mean_ratio_median": endpoint_var_mean,
+        })
+
+    def poisson_evaluation_per_endpoint(self, all_endpoint_df, window_sizes):
+        final_score = None
+
+        for window_size in window_sizes:
+            all_endpoint_df['window_start'] = all_endpoint_df['time_local'].dt.floor(window_size).copy()
+            endpoint_df = self.index_windows(all_endpoint_df)
+
+            window_stats = (
+                endpoint_df
+                .groupby(["endpoint", "window_id"])
+                .apply(
+                    lambda df: pd.concat(
+                        [
+                            self.poisson_window_metrics(df["total_requests"]),
+                            pd.Series({"has_anomaly": df["is_anomaly"].max()})
+                        ]
+                    )
+                )
+                .reset_index()
+            )
+
+            endpoint_stats = (
+                window_stats
+                .groupby("endpoint")["var_mean_ratio"]
+                .apply(self.poisson_endpoint_metric)
+                .unstack()
+                .reset_index()
+            )
+
+            endpoint_counts = (
+                window_stats
+                .groupby("endpoint")
+                .agg(
+                    n_anomaly_windows=("has_anomaly", "sum"),
+                    n_windows=("has_anomaly", "count")
+                )
+                .reset_index()
+            )
+
+            endpoint_stats = endpoint_stats.merge(
+                endpoint_counts,
+                on="endpoint",
+                how="left"
+            )
+
+            endpoint_stats = endpoint_stats.rename(
+                columns = {
+                    "var_mean_ratio_median":f"var_mean_median_{window_size}",
+                    "n_anomaly_windows": f"n_anomaly_windows_{window_size}",
+                    "n_windows": f"n_windows_{window_size}"
+                })
+
+            if final_score is None:
+                final_score = endpoint_stats
+            else:
+                final_score = pd.merge(
+                    final_score,
+                    endpoint_stats,
+                    on="endpoint",
+                    how="outer"
+                )
+
+        return final_score
+
     def calculate_window_params(self, sample):
         window_lam = sample.mean()
         window_var = sample.var()
         return window_lam, window_var
-
 
     def plot_poisson_hist(self, ax, x, lam, sample_window_id):
         # empirical histogram
