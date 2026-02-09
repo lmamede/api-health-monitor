@@ -27,6 +27,52 @@ class EDA:
                       labels={time_col: 'Time', 'count': 'Count'})
         fig.show()
 
+    def adjust_endpoints_time_interval(self, df_valid_endpoints):
+        global_start = df_valid_endpoints["time_local"].min().floor("1s")
+        global_end = df_valid_endpoints["time_local"].max().ceil("1s")
+
+        full_time_index = pd.date_range(
+            start=global_start,
+            end=global_end,
+            freq="1s"
+        )
+
+        endpoints = df_valid_endpoints["endpoint"].unique()
+
+        full_index = pd.MultiIndex.from_product(
+            [endpoints, full_time_index],
+            names=["endpoint", "time_local"]
+        )
+
+        rate_df = df_valid_endpoints.copy()
+        rate_df = rate_df.set_index("time_local")
+
+        count_rate_df = (
+            rate_df
+            .groupby(["endpoint"])
+            .resample("1s")
+            .agg(
+                count=("is_anomaly", "size"),
+                is_anomaly=("is_anomaly", "max")
+            )
+        )
+
+        count_rate_df = (
+            count_rate_df
+            .reindex(full_index, fill_value=0)
+            .reset_index()
+        )
+
+        count_rate_df["is_anomaly"] = (
+            count_rate_df["is_anomaly"]
+            .fillna(0)
+            .astype(int)
+        )
+
+        count_rate_df["is_anomaly"] = count_rate_df["is_anomaly"].astype(int)
+
+        return count_rate_df
+
     def set_time_axis_30min(self, ax, interval):
         """
         Force a fixed 30-minute granularity on the x-axis,
