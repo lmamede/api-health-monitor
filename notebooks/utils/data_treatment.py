@@ -10,13 +10,14 @@ class DataManager:
         self.dst_ip_col = None
         self.src_ip_col = None
 
-    def get_all_datasets_path(self):
+    def get_all_datasets_path(self, files_ends, dataset_path):
         """ Autmatically obtain the datasets paths """
         csv_paths = []
-        files_codes = ['8', '9', '10', '11']  # datasets used
-        with os.scandir('../datasets/Processed_Network_dataset') as ton_dts:
-            for ton_dt in ton_dts:
-                csv_paths = csv_paths + [ton_dt.path for code in files_codes if ton_dt.name.endswith(f'{code}.csv')]
+        with os.scandir(dataset_path) as dataset_dir:
+            print('Found datasets:')
+            for dataset_file in dataset_dir:
+                print(dataset_file.path)
+                csv_paths = csv_paths + [dataset_file.path for code in files_ends if dataset_file.name.endswith(f'{code}.csv')]
         return csv_paths
 
     def merge_datasets(self, paths):
@@ -28,8 +29,8 @@ class DataManager:
         df = pd.concat(dfs, ignore_index=True)
         return df
 
-    def load_data(self):
-        csv_paths = self.get_all_datasets_path()
+    def load_data(self, files_ends, dataset_path):
+        csv_paths = self.get_all_datasets_path(files_ends, dataset_path)
         return self.merge_datasets(csv_paths)
 
     def format_columns(self, df):

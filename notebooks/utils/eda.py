@@ -8,23 +8,22 @@ import numpy as np
 from statsmodels.distributions.empirical_distribution import ECDF
 
 class EDA:
-    def __init__(self, df):
-        self.counts = None
+    def __init__(self, df, time_col='time_local', label_col='type', endpoint_col = 'endpoint'):
         self.df = df
+        self.time_col = time_col
+        self.label_col = label_col
+        self.endpoint_col = endpoint_col
 
     def plot_global_request_rate(self, frequency):
         """ Group df based on the frequency provided"""
-        time_col = 'time_local'
-        label_col = 'type'
-
-        counts = (self.df.groupby([label_col, pd.Grouper(key=time_col, freq=frequency)])
+        counts = (self.df.groupby([self.label_col, pd.Grouper(key=self.time_col, freq=frequency)])
                   .size()
                   .reset_index(name='count'))
 
         # Plot evolution over time
-        fig = px.line(counts, x=time_col, y='count', color=label_col,
+        fig = px.line(counts, x=self.time_col, y='count', color=self.label_col,
                       title='Request frequency over time',
-                      labels={time_col: 'Time', 'count': 'Count'})
+                      labels={self.time_col: 'Time', 'count': 'Count'})
         fig.show()
 
     def adjust_endpoints_time_interval(self, df_valid_endpoints):
@@ -85,21 +84,22 @@ class EDA:
         ax.xaxis.set_major_formatter(formatter)
 
     def plot_endpoint_request_rate(self, top_uris=[], frequency='min', top=6, window_size=None, start_offset_s=0, interval=30):
-        time_col = 'time_local'
-        label_col = 'type'  # e.g., normal / dos
-        endpoint_col = 'endpoint'
+        time_col = self.time_col
+        label_col = self.label_col  # e.g., normal / dos
+        endpoint_col = self.endpoint_col
+
+        first_day = self.df[time_col].dt.normalize().min()
+        df = self.df[self.df[time_col].dt.normalize() == first_day].copy()
 
         if not top_uris:
             top_uris = (
-                self.df[endpoint_col]
+                df[endpoint_col]
                 .value_counts()
                 .head(top)
                 .index
             )
 
-        df = self.df[self.df[endpoint_col].isin(top_uris)].copy()
-        first_day = df[time_col].dt.normalize().min()
-        df = df[df[time_col].dt.normalize() == first_day].copy()
+        df = df[df[endpoint_col].isin(top_uris)].copy()
         df = df.set_index(time_col)
 
         counts = (
@@ -113,7 +113,6 @@ class EDA:
         plot_start = counts['time_local'].iloc[0] + pd.to_timedelta(start_offset_s, unit='s')
         print('plot_start:', plot_start)
         counts = counts[counts[time_col] >= plot_start].copy()
-        self.counts= counts
 
         figsize_plot = (15, 5)
         endpoints = counts[endpoint_col].unique()
