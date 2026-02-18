@@ -51,7 +51,7 @@ class EDA:
             .groupby(["endpoint"])
             .resample("1s")
             .agg(
-                count=("is_anomaly", "size"),
+                total_requests=("is_anomaly", "size"),
                 is_anomaly=("is_anomaly", "max")
             )
         )
@@ -212,11 +212,7 @@ class EDA:
                 .astype(int) - 1
         )
 
-        window_indexed_df = window_indexed_df[['endpoint', 'window_id', 'time_local', 'count', 'is_anomaly']]
-
-        window_indexed_df = window_indexed_df.rename(columns={
-            'count': 'total_requests'
-        })
+        window_indexed_df = window_indexed_df[['endpoint', 'window_id', 'time_local', 'total_requests', 'is_anomaly']]
 
         return window_indexed_df
 
@@ -358,7 +354,7 @@ class EDA:
         ax.set_title(f"Q–Q plot – Window {sample_window_id}")
 
     def plot_poisson_suitability_sample(self, sample_window_id, df):
-        x = df[df['window_id'] == sample_window_id]['count']
+        x = df[df['window_id'] == sample_window_id]['total_requests']
         lam, var = self.calculate_window_params(x)
 
         print(f"λ (mean) = {lam:.2f}")
