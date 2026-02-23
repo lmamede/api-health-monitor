@@ -1,3 +1,0 @@
-from modules.request_collector import RequestCollector
-from modules import client_interceptor
-from modules import request_interceptor
