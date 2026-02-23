@@ -1,5 +1,5 @@
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
-from scipy.spatial import ConvexHull
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -168,6 +168,7 @@ def plot_ra_vs_eta(df, figsize=(5,4)):
 
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    plt.savefig("outputs/ra_degradation_vs_eta.png", bbox_inches="tight", pad_inches=0.01)
     plt.show()
 
 def plot_ra_vs_eta_grid(df, col_wrap=5, height=1.8):
@@ -187,15 +188,15 @@ def plot_ra_vs_eta_grid(df, col_wrap=5, height=1.8):
         context="paper",
         font="serif",
         rc={
-            "font.size": 8,
-            "axes.titlesize": 8,
-            "axes.labelsize": 8,
-            "xtick.labelsize": 7,
-            "ytick.labelsize": 7,
-            "legend.fontsize": 7,
+            "font.size": 13,
+            "axes.titlesize": 13,
+            "axes.labelsize": 13,
+            "xtick.labelsize": 9,
+            "ytick.labelsize": 9,
+            "legend.fontsize": 13,
             "figure.dpi": 300,
-            "axes.linewidth": 0.6,
-            "grid.linewidth": 0.4,
+            "axes.linewidth": 0.7,
+            "grid.linewidth": 0.5,
         }
     )
 
@@ -222,9 +223,25 @@ def plot_ra_vs_eta_grid(df, col_wrap=5, height=1.8):
         linewidth=0
     )
 
-    g.set_axis_labels(
+    # remove labels individuais
+    for ax in g.axes.flat:
+        ax.set_ylabel("")
+        ax.set_xlabel("")
+
+    # label global
+    g.figure.text(
+        0.5, -0.02,
         "Anomaly score η",
-        "Health degradation (1 − Ra)"
+        ha="center",
+        va="center"
+    )
+
+    g.figure.text(
+        -0.01, 0.5,
+        "Health degradation (1 − Ra)",
+        ha="center",
+        va="center",
+        rotation="vertical"
     )
 
     g.set_titles("{col_name}")
@@ -235,10 +252,8 @@ def plot_ra_vs_eta_grid(df, col_wrap=5, height=1.8):
         ax.set_ylim(bottom=0)
 
     plt.tight_layout(pad=0.3)
-    plt.savefig("outputs/ra_degradation_vs_eta.png", bbox_inches="tight", pad_inches=0.01)
-
+    plt.savefig("outputs/ra_degradation_vs_eta_grid.png", bbox_inches="tight", pad_inches=0.01)
     plt.show()
-
 
 def plot_ra_vs_kalman_params_grid(df_k, df_Q, df_R, figsize=(7, 3.2)):
     sns.set_theme(
@@ -281,7 +296,7 @@ def plot_ra_vs_kalman_params_grid(df_k, df_Q, df_R, figsize=(7, 3.2)):
             legend=True
         )
 
-        ax.set_title(title, fontsize=9)
+        ax.set_title(title, fontsize=13)
         ax.set_xlabel(param)
 
         ax.grid(True, linestyle="--", alpha=0.4)
@@ -307,6 +322,7 @@ def plot_ra_vs_kalman_params_grid(df_k, df_Q, df_R, figsize=(7, 3.2)):
 
     sns.despine()
     plt.tight_layout(rect=[0, 0.08, 1, 1])
+    plt.savefig("outputs/ra_vs_kalman_params_grid.png", bbox_inches="tight", pad_inches=0.01)
     plt.show()
 
 def build_anomaly_summary_table(df):
@@ -429,7 +445,7 @@ def plot_event_impact_grid(
     axes[1,1].set_ylabel("")
 
     plt.tight_layout()
-    plt.savefig("outputs/impact_grid_ieee.png", dpi=300, bbox_inches="tight")
+    plt.savefig("outputs/ra_params_impact_grid.png", dpi=300, bbox_inches="tight")
     plt.show()
 
 def build_summary_table(df, param_col):
@@ -452,14 +468,12 @@ def build_event_summary(df,
                         Ra_col="Ra"):
 
     data = df.copy()
-
     data[time_col] = pd.to_datetime(data[time_col])
     data = data.sort_values(["endpoint", time_col])
 
     summaries = []
 
     for endpoint, group in data.groupby("endpoint"):
-
         group = group.copy()
 
         group["start"] = (
@@ -511,18 +525,17 @@ def plot_classification_metrics_bar(
     )
 
     metrics = ["precision", "recall", "f1", "accuracy"]
-
     sns.set_theme(
         style="whitegrid",
         context="paper",
         font="serif",
         rc={
-            "font.size": 8,
-            "axes.labelsize": 8,
-            "axes.titlesize": 9,
-            "xtick.labelsize": 7,
-            "ytick.labelsize": 7,
-            "legend.fontsize": 7,
+            "font.size": 13,
+            "axes.labelsize": 13,
+            "axes.titlesize": 13,
+            "xtick.labelsize": 8,
+            "ytick.labelsize": 8,
+            "legend.fontsize": 8,
             "axes.linewidth": 0.6,
         }
     )
@@ -535,12 +548,10 @@ def plot_classification_metrics_bar(
     }
 
     fig, ax = plt.subplots(figsize=figsize)
-
     group_spacing = 1.6
     bar_width = 0.16
 
     x = np.arange(len(endpoints)) * group_spacing
-
     for i, metric in enumerate(metrics):
         values = [
             df[df["endpoint"] == ep][metric].values[0]
@@ -570,11 +581,11 @@ def plot_classification_metrics_bar(
     )
 
     ax.set_ylabel("Metric value")
-    ax.set_title(
-        f"Window size = {window_size} s",
-        fontsize=9,
-        pad=4
-    )
+   # ax.set_title(
+   #     f"Window size = {window_size} s",
+   #     fontsize=9,
+   #     pad=4
+   # )
 
     ax.set_ylim(0, 1.05)
     ax.legend(
@@ -592,7 +603,7 @@ def plot_classification_metrics_bar(
             0.98,
             subplot_label,
             transform=ax.transAxes,
-            fontsize=9,
+            fontsize=13,
             fontweight="bold",
             va="top"
         )
@@ -602,7 +613,7 @@ def plot_classification_metrics_bar(
     ax.grid(axis="x", visible=False)
 
     plt.tight_layout(pad=0.6)
-    plt.savefig("outputs/classification_metrics_bar.png", dpi=300, bbox_inches="tight")
+    plt.savefig("outputs/ra_classification_metrics_bar.png", dpi=300, bbox_inches="tight")
     plt.show()
 
 def plot_anomaly_timeline_seaborn(
@@ -618,54 +629,42 @@ def plot_anomaly_timeline_seaborn(
     """
 
     df = res_df.copy()
-
     df[time_col] = pd.to_datetime(df[time_col])
     df["has_anomaly"] = df["has_anomaly"].astype(int)
-
     df = df.sort_values(["endpoint", time_col])
 
-    # ordenar numericamente
     endpoints = sorted(
         df["endpoint"].unique(),
         key=lambda x: int(x.split()[-1])
     )
 
-    # estilo IEEE
     sns.set_theme(
         style="whitegrid",
         context="paper",
         font="serif",
         rc={
-            "font.size": 8,
-            "axes.labelsize": 8,
-            "axes.titlesize": 9,
-            "xtick.labelsize": 7,
-            "ytick.labelsize": 7
+            "font.size": 13,
+            "axes.labelsize": 13,
+            "axes.titlesize": 13,
+            "xtick.labelsize": 8,
+            "ytick.labelsize": 8
         }
     )
 
     fig, ax = plt.subplots(figsize=figsize)
-
     y_positions = {endpoint: i for i, endpoint in enumerate(endpoints)}
-
     total_blocks = 0
 
     for endpoint in endpoints:
-
         sub = df[df["endpoint"] == endpoint].copy()
-
-        # detectar eventos
         sub["start"] = (
             (sub["has_anomaly"] == 1) &
             (sub["has_anomaly"].shift(1, fill_value=0) == 0)
         )
-
         sub["event_id"] = sub["start"].cumsum()
-
         events = sub[sub["has_anomaly"] == 1].groupby("event_id")
 
         y = y_positions[endpoint]
-
         for _, event in events:
 
             start = event[time_col].iloc[0]
@@ -692,7 +691,6 @@ def plot_anomaly_timeline_seaborn(
     ax.set_title("Persistent anomaly regimes across endpoints")
 
     sns.despine()
-
     plt.tight_layout()
 
     if save_path:
@@ -700,12 +698,10 @@ def plot_anomaly_timeline_seaborn(
             save_path,
             bbox_inches="tight"
         )
-
     plt.show()
-
     print(f"Rendered {total_blocks} anomaly blocks")
 
-def define_plot_limits(df, time_col):
+def _define_plot_limits(df, time_col):
     anomaly_col = 'has_anomaly'
     df["start_flag"] = (
         (df[anomaly_col] == 1) &
@@ -717,17 +713,16 @@ def define_plot_limits(df, time_col):
     durations = anomaly_windows.groupby("event_id").size()
 
     max_event_id = durations.idxmax()
-    max_duration = durations.loc[max_event_id]
     event = anomaly_windows[anomaly_windows["event_id"] == max_event_id]
     start_time = event[time_col].iloc[0]
 
     #first_anomaly = df.loc[df['has_anomaly'] == 1, time_col].min()
     begin_plot = start_time - pd.Timedelta(minutes=10)
-    end_plot = start_time + pd.Timedelta(minutes=30)
+    end_plot = start_time + pd.Timedelta(minutes=60)
     print(f'greatest anomaly at:{start_time} - begin plot:{begin_plot} - end plot:{end_plot}')
     return begin_plot, end_plot
 
-def normalize_traffic_flow(df):
+def _normalize_traffic_flow(df):
     flow_log = np.log10(df['total_requests'] + 1)
     flow_scaled = (
         (flow_log - flow_log.min())/
@@ -735,99 +730,173 @@ def normalize_traffic_flow(df):
     )
     return flow_scaled
 
-def plot_Ra(df, time_col, fig):
-    color_map = {'Benign': 'green', 'Attack': 'red'}
-    symbol_map = {
-        'kalman':'square'
-    }
 
-    for model in df['model'].unique():
-        md_df = df[df['model'] == model].copy()
-        fig.add_trace(go.Scatter(
-            x=md_df[time_col],
-            y=md_df['Ra'],
-            mode='markers',
+def _add_anomaly_shading(df, time_col, fig):
+    df = df.copy()
+    gt_df = df[df["has_anomaly"] == "Attack"]
+
+    fig.add_trace(
+        go.Scatter(
+            x=gt_df[time_col],
+            y=[0.01] * len(gt_df),  # base do gráfico
+            mode="markers",
             marker=dict(
-                symbol=symbol_map[model],
-                color=md_df['has_anomaly'].map(color_map),
-                size=7,
-                line=dict(width=0.5, color='black')
+                symbol="line-ns-open",  # linha vertical pequena
+                size=5,
+                color="red",
+                line=dict(width=2)
             ),
-            name=f'Ra - {model} (colored by Attack/Benign)',
-            hovertemplate='<br>Time: %{x}<br>Ra: %{y:.3f}<br>Status: %{marker.color}<extra></extra>')
+            name="Anomaly",
+            showlegend=True,
+            legendgroup="ground_truth",
+            legendgrouptitle_text="Ground truth"
+        ),
+        row=2, col=1
+    )
+
+    for t in gt_df[time_col]:
+        fig.add_vline(
+            x=t,
+            line_width=1,
+            line_dash="dot",
+            line_color="red",
+            row="all", col=1
         )
 
-def plot_metrics(df, time_col, fig):
+def _plot_Ra(df, time_col, fig, row):
+    color_map = {'Benign': 'green', 'Attack': '#d62728'}
+
+    fig.add_trace(
+        go.Scatter(
+            x=df[time_col],
+            y=df["eta"],
+            mode='lines',
+            line=dict(color="orange", width=1.5),
+            name="$\\eta$",
+            showlegend=True,
+            legendgroup="detection",
+            legendgrouptitle_text ="Detection",
+        ),
+        row=row, col=1
+    )
+
+    md_df = df.copy()
+    fig.add_trace(
+        go.Scatter(
+            x=md_df[time_col],
+            y=md_df['Ra'],
+            mode='lines',
+            line=dict(color="#1f77b4", width=2, dash="solid"),
+            name='$R_a$',
+            hovertemplate='<br>Time: %{x}<br>Ra: %{y:.3f}<br>Status: %{marker.color}<extra></extra>',
+            showlegend=True,
+            legendgroup="detection",
+        ),
+        row=row,
+        col=1
+    )
+
+
+def _plot_metrics(df, time_col, fig, row):
     metric_colors = {
         #'D': '#1f77b4',
         #'Z': '#ff7f0e',
         #'Delta': '#2ca02c',
-        'eta': "#fde861",
         #'Ra2': "#fd61bc",
         #'C2': "#ff0000",
-        'fDp': "#ff00ff",
-        'fDeltap': "#ffc300",
-        'fZp': "#bbff00"
+        'fDp': "#19D3F3",
+        'fDeltap': "#AB63FA",
+        'fZp': "#FF6692"
+    }
+
+    metric_names = {
+        "fDeltap":"$f'_\\Delta$",
+        "fDp": "$f'_D$",
+        "fZp": "$f'_Z$"
     }
 
     for metric, color in metric_colors.items():
-        fig.add_trace(go.Scatter(
-            x=df[time_col],
-            y=df[metric],
-            mode='lines',
-            line=dict(color=color, width=2),
-            name=metric
-        ))
-
-def plot_traffic(df, time_col, fig):
-    flow_scaled = normalize_traffic_flow(df)
-    fig.add_trace(go.Scatter(
-        x=df[time_col],
-        y=flow_scaled,
-        mode='lines',
-        name='Flow by time',
-        line=dict(color='#00c3ff'),
-        hovertemplate='Time: %{x}<br>Request: %{y:.3f}<extra></extra>')
-    )
-
-def plot_results(plot_examples, res_df,df):
-    unique_pairs = res_df['endpoint'].drop_duplicates().sample(min(plot_examples, len(res_df)))
-
-    for endpoint in unique_pairs:
-        time_col = 'window_start'
-        sub_res = res_df[(res_df['endpoint'] == endpoint)].sort_values(time_col).copy()
-        df_flow = df[(df['endpoint'] == endpoint)].sort_values('time_local').copy()
-
-        begin_plot, end_plot = define_plot_limits(sub_res, time_col)
-
-        sub_res = sub_res[(sub_res[time_col] >= begin_plot) & (sub_res[time_col] <= end_plot)].copy()
-        sub_res[time_col] = sub_res[time_col] + pd.Timedelta(seconds=30)
-        sub_res['has_anomaly'] = sub_res['has_anomaly'].map({1: 'Attack', 0: 'Benign'})
-
-        df_flow = df_flow[(df_flow['time_local'] >= begin_plot) & (df_flow['time_local'] <= end_plot)].copy()
-
-        fig = go.Figure()
-        plot_metrics(sub_res, time_col, fig)
-        plot_traffic(df_flow, 'time_local', fig)
-        plot_Ra(sub_res, time_col, fig)
-
-        # --- Layout ---
-        fig.update_layout(
-            title=f'Metrics evolution for the {endpoint}',
-            xaxis_title='Time',
-            yaxis_title='Metric value',
-            template='plotly_white',
-            legend_title_text='Metric',
-            margin=dict(l=50, r=30, t=60, b=40)
+        fig.add_trace(
+            go.Scatter(
+                x=df[time_col],
+                y=df[metric],
+                mode='lines',
+                line=dict(color=color, width=2),
+                name=metric_names.get(metric),
+                legendgroup="features",
+                showlegend=True
+            ),
+            row=row,
+            col=1
         )
 
-        fig.show()
+def _plot_traffic(df, time_col, fig, row):
+    flow_scaled = _normalize_traffic_flow(df)
+    fig.add_trace(
+        go.Scatter(
+            x=df[time_col],
+            y=flow_scaled,
+            mode='lines',
+            name='log traffic',
+            line=dict(color="#8E8E8E", width=1.2, dash="solid"),#00c3ff
+            opacity=0.5,
+            hovertemplate='Time: %{x}<br>Request: %{y:.3f}<extra></extra>',
+            showlegend=True,
+            legendgroup="features",
+            legendgrouptitle_text="Observables",
+        ),
+        row=row,
+        col=1
+    )
 
-def plot_regimes_plotly_clean_with_labels_right(
-        summary_df,
-        distance_threshold=0.08,
-        desired_max_size=40, radius_offset=5):
+def plot_results(res_df,df, endpoint):
+    #unique_pairs = res_df['endpoint'].drop_duplicates().sample(min(plot_examples, len(res_df)))
 
+    time_col = 'window_start'
+    sub_res = res_df[(res_df['endpoint'] == endpoint)].sort_values(time_col).copy()
+    df_flow = df[(df['endpoint'] == endpoint)].sort_values('time_local').copy()
+
+    begin_plot, end_plot = _define_plot_limits(sub_res, time_col)
+
+    sub_res = sub_res[(sub_res[time_col] >= begin_plot) & (sub_res[time_col] <= end_plot)].copy()
+    sub_res[time_col] = sub_res[time_col] + pd.Timedelta(seconds=30)
+    sub_res['has_anomaly'] = sub_res['has_anomaly'].map({1: 'Attack', 0: 'Benign'})
+
+    df_flow = df_flow[(df_flow['time_local'] >= begin_plot) & (df_flow['time_local'] <= end_plot)].copy()
+
+    fig = make_subplots(
+        rows=2, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.08,
+        row_heights=[0.5, 0.5],
+    )
+
+    _plot_traffic(df_flow, 'time_local', fig, row=1)
+    _plot_metrics(sub_res, time_col, fig, row=1)
+    _plot_Ra(sub_res, time_col, fig, row=2)
+    _add_anomaly_shading(sub_res, time_col, fig)
+
+    # --- Layout ---
+    fig.update_layout(
+        #title=f'Metrics evolution for the {endpoint}',
+        template='plotly_white',
+        #legend_title_text='Metric',
+        margin=dict(l=40, r=20, t=60, b=40),
+        legend=dict(
+            font=dict(size=16),
+            grouptitlefont=dict(size=17),
+            tracegroupgap=35,
+        ),
+    )
+    fig.update_yaxes(title_text="Fuzzy components", row=1, col=1, showgrid=True)
+    fig.update_xaxes(row=1, col=1, showgrid=True)
+    fig.update_yaxes(title_text="Health vs Anomaly", row=2, col=1, showgrid=True)
+    fig.update_xaxes(title_text="Time", row=2, col=1, showgrid=True)
+
+    fig.write_image(f"outputs/metrics_by_time_{endpoint.replace(' ', '')}.png")
+    fig.show()
+
+def plot_regimes_clusters(summary_df, distance_threshold=0.08,  desired_max_size=40, radius_offset=5):
     df = summary_df.copy()
     x = df["mean_duration"].values
     y = df["frequency"].values
@@ -918,37 +987,7 @@ def plot_regimes_plotly_clean_with_labels_right(
         showlegend=False
     ))
 
-    # cluster hulls
-    cluster_map = {
-        "persistent": ["Endpoint 1","Endpoint 4","Endpoint 7","Endpoint 8","Endpoint 9"],
-        "stable": ["Endpoint 2","Endpoint 3","Endpoint 5","Endpoint 6"],
-        "frequent": ["Endpoint 10"]
-    }
-
-    for endpoints in cluster_map.values():
-
-        sub = df[df["endpoint"].isin(endpoints)]
-
-        if len(sub) < 3:
-            continue
-
-        pts = np.column_stack([sub["mean_duration"], sub["frequency"]])
-        hull = ConvexHull(np.log10(pts))
-        hull_pts = pts[hull.vertices]
-
-        path = "M " + " L ".join(f"{px},{py}" for px,py in hull_pts) + " Z"
-
-        fig.add_shape(
-            type="path",
-            path=path,
-            xref="x",
-            yref="y",
-            line=dict(color="black", width=2),
-            fillcolor="rgba(0,0,0,0.04)"
-        )
-
     freq_ticks = [1e-4,3e-4,1e-3,3e-3,1e-2,3e-2]
-
     fig.update_layout(
         template="simple_white",
         width=fig_width_px,
@@ -963,10 +1002,10 @@ def plot_regimes_plotly_clean_with_labels_right(
         yaxis=dict(
             title="Anomaly frequency",
             type="log",
-            tickvals=freq_ticks,
-            ticktext=[f"{v:.0e}" for v in freq_ticks]
+            exponentformat="power",
+            showexponent="all"
         ),
         font=dict(family="Serif", size=16)
     )
-
+    fig.write_image("outputs/ra_endpoints_cluster.png")
     fig.show()

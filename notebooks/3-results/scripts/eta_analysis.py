@@ -93,9 +93,9 @@ def plot_detection_capability(df_metrics, figsize=(10, 5)):
     )
 
     ax.set(title="Detection Capability Across Endpoints", xlabel="Endpoint", ylabel="Score", ylim=(0, 1.05))
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=90, fontsize=13)
     plt.tight_layout()
-    plt.savefig(f"{OUTPUT_PATH}detection_capability_sns.png")
+    plt.savefig(f"{OUTPUT_PATH}eta_detection_capability.png")
     plt.show()
 
 
