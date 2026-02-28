@@ -1,6 +1,6 @@
 # API Health Monitor
 
-This repository contains the full implementation, exploratory analysis, experimental pipeline, and result generation scripts used in the paper. The project focuses on anomaly detection and robustness evaluation in API traffic monitoring under non-stationary conditions.
+This repository contains the full implementation, exploratory analysis, experimental pipeline, and result generation scripts used in the paper Statistical Trust Modeling for Endpoint-level Network Anomaly Detection. The project focuses on anomaly detection and robustness evaluation in API traffic monitoring under non-stationary conditions.
 
 ## Repository Structure
 ```
@@ -93,4 +93,3 @@ All reported figures in the paper can be regenerated from the provided notebooks
 #### Reproducibility Notes
 
 All experiments were executed with fixed random seeds. Intermediate outputs are stored to ensure traceability.
-The exact repository version corresponding to the paper is:
