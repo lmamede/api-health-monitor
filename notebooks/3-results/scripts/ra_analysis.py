@@ -160,7 +160,6 @@ def plot_ra_vs_eta(df, figsize=(5,4)):
         bbox_to_anchor=(.5, -0.25),
         ncol=5,
         title="Endpoints",
-        fontsize='small',
     )
 
     plt.xlabel("Anomaly score η")
@@ -532,7 +531,7 @@ def plot_classification_metrics_bar(
         rc={
             "font.size": 13,
             "axes.labelsize": 13,
-            "axes.titlesize": 13,
+            "axes.titlesize": 10,
             "xtick.labelsize": 8,
             "ytick.labelsize": 8,
             "legend.fontsize": 8,
@@ -549,7 +548,7 @@ def plot_classification_metrics_bar(
 
     fig, ax = plt.subplots(figsize=figsize)
     group_spacing = 1.6
-    bar_width = 0.16
+    bar_width = 0.22
 
     x = np.arange(len(endpoints)) * group_spacing
     for i, metric in enumerate(metrics):
@@ -603,7 +602,7 @@ def plot_classification_metrics_bar(
             0.98,
             subplot_label,
             transform=ax.transAxes,
-            fontsize=13,
+            fontsize=11,
             fontweight="bold",
             va="top"
         )
@@ -883,15 +882,15 @@ def plot_results(res_df,df, endpoint):
         #legend_title_text='Metric',
         margin=dict(l=40, r=20, t=60, b=40),
         legend=dict(
-            font=dict(size=16),
-            grouptitlefont=dict(size=17),
+            font=dict(size=17),
+            grouptitlefont=dict(size=18),
             tracegroupgap=35,
         ),
     )
-    fig.update_yaxes(title_text="Fuzzy components", row=1, col=1, showgrid=True)
+    fig.update_yaxes(title_text="Traffic features", title_font=dict(size=18), row=1, col=1, showgrid=True)
     fig.update_xaxes(row=1, col=1, showgrid=True)
-    fig.update_yaxes(title_text="Health vs Anomaly", row=2, col=1, showgrid=True)
-    fig.update_xaxes(title_text="Time", row=2, col=1, showgrid=True)
+    fig.update_yaxes(title_text="Health vs Anomaly",title_font=dict(size=18), row=2, col=1, showgrid=True)
+    fig.update_xaxes(title_text="Time", title_font=dict(size=18), tickfont=dict(size=14), row=2, col=1, showgrid=True)
 
     fig.write_image(f"outputs/metrics_by_time_{endpoint.replace(' ', '')}.png")
     fig.show()
@@ -987,7 +986,6 @@ def plot_regimes_clusters(summary_df, distance_threshold=0.08,  desired_max_size
         showlegend=False
     ))
 
-    freq_ticks = [1e-4,3e-4,1e-3,3e-3,1e-2,3e-2]
     fig.update_layout(
         template="simple_white",
         width=fig_width_px,
