@@ -1,6 +1,6 @@
 # API Health Monitor
 
-This repository contains the full implementation, exploratory analysis, experimental pipeline, and result generation scripts used in the paper Statistical Trust Modeling for Endpoint-level Network Anomaly Detection. The project focuses on anomaly detection and robustness evaluation in API traffic monitoring under non-stationary conditions.
+This repository contains the full implementation, exploratory analysis, experimental pipeline, and result generation scripts used in the paper Adaptive Statistical Trust Modeling for Endpoint-Level Network Anomaly Detection. The project focuses on anomaly detection and robustness evaluation in API traffic monitoring under non-stationary conditions.
 
 ## Repository Structure
 ```
@@ -52,7 +52,7 @@ To reproduce all results reported in the paper, follow the pipeline below.
 
 Place the datasets inside: notebooks/0-datasets/
 
-Then run the EDA notebooks: notebooks/1-eda/EDA-*.ipynb
+Then run the EDA notebooks: notebooks/1-eda/EDA-ToN_IoT.ipynb
 
 This step performs:
 - Data cleaning
