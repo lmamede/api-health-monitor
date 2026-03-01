@@ -7,6 +7,7 @@ This repository contains the full implementation, exploratory analysis, experime
 api-health-monitor/
 │
 ├── notebooks/
+| ├── 0-datasets/ # Dir for downloaded datasets
 │ ├── 1-eda/ # Exploratory Data Analysis
 │ │ ├── outputs/ # Generated plots and intermediate artifacts
 │ │ ├── scripts/ # Data preprocessing and EDA utilities
@@ -49,6 +50,7 @@ pip install -r requirements.txt
 To reproduce all results reported in the paper, follow the pipeline below.
 
 **Step 1 — Dataset Preparation**
+Download the datasets using the details in each notebooks/1-eda/EDA-*.ipynb
 
 Place the datasets inside: notebooks/0-datasets/
 
